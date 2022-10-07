@@ -1,0 +1,39 @@
+#Include "TOTVS.ch"
+
+User Function MTGRDVW()
+    Local aArea := GetArea()
+   
+    
+    //Quantiddade 01 e 08, Indice Posicione alterado para indice 2
+    local nSaldo08  := Posicione("SB2",2,XFILIAL("SB2")+"08" +SB1->B1_COD,"B2_QATU")
+    local nSaldo01  := Posicione("SB2",2,XFILIAL("SB2")+"01" +SB1->B1_COD,"B2_QATU")
+    //Empenho 01 e 08, Indice Posicione alterado para indice 2
+    local nEmp01  := Posicione("SB2",2,XFILIAL("SB2")+"01" +SB1->B1_COD,"B2_QEMP")
+    local nEmp08  := Posicione("SB2",2,XFILIAL("SB2")+"08" +SB1->B1_COD,"B2_QEMP")
+    //Estoque minimo 
+    local nEstMin01 := Posicione("SB1",1,xFilial("SB1")+SB1->B1_COD,"B1_ESTSEG")
+    local nEstMin08 := Posicione("SB1",1,xFilial("SB1")+SB1->B1_COD,"B1_ZMIN08")
+    Local nTransf01 :=  nSaldo01 - (nEstMin01 + nEmp01)
+    Local nTransf08 :=  nSaldo08 - (nEstMin08 + nEmp08)
+
+    if nTransf01 <=0
+      nTransf01 := 'Indisponvel'
+    endif
+
+    if nTransf08 <=0
+      nTransf08 := 'Indisponvel'
+    endif
+    
+    //Aumenta a altura da dialog do F4
+    ParamIXB[3]:nHeight := 565
+    
+    //Adiciona o Saldo Disponível Transferência
+    @ 225,007 SAY "Saldo Disp. Transf. p/01" PIXEL  
+    @ 224,075 MsGet nTransf08 PIXEL SIZE 070,009 When .F.
+    
+    //Adiciona Estoque Mínimo 08
+    @ 240,007 SAY "Saldo Disp. Transf. p/08" PIXEL  
+    @ 239,075 MsGet nTransf01 PIXEL SIZE 070,009 When .F.
+
+    RestArea(aArea)
+Return 
