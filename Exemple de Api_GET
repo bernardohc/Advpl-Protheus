@@ -1,0 +1,58 @@
+#INCLUDE "TOTVS.CH"
+#INCLUDE "RESTFUL.CH"
+#INCLUDE "TOPCONN.CH"
+#INCLUDE "TBICONN.CH"
+
+// http://gtsdo142364.protheus.cloudtotvs.com.br:4050/rest/ws_gts_fluig/getProduto 
+
+//nome da estrutura da api
+WSRESTFUL ws_gts_fluig DESCRIPTION "APIs Fluig GTS do Brasil"
+
+    //parametros
+    WSDATA CPROD AS STRING
+
+    WSMETHOD GET getProduto DESCRIPTION "Retorna Descrição do Produto" WSSYNTAX "/getProduto" PATH "/getProduto"
+
+END WSRESTFUL
+
+//Adiciona os parametros
+WSMETHOD GET getProduto WSRECEIVE CPROD WSSERVICE ws_gts_fluig
+    Local cProd := Self:CPROD
+
+    //logando na empresa
+    PREPARE Environment EMPRESA "01" FILIAL "010001"
+
+    DbSelectArea("SB1")
+
+    //Formata o tamanho do campo confrome seu tamanho
+    //cProd := PadR(cProd,TamSX3("B1_cod")[1])
+
+    conout("Inicio ws_gts_fluig getProduto")
+
+    cChave := xFilial('SB1')+Padr(cProd,TamSx3("B1_COD")[1])
+    If SB1->(Dbseek(cChave))
+        If SB1->B1_LOCPAD == '02'
+            cJson := "[{"
+            cJson := " 'CDESC': " + SB1->B1_DESC
+            cJson := "}]"
+        else
+            cJson := "[{"
+            cJson := " 'CMSG': 'Produto não faz parte do armazem 02'" 
+            cJson := "}]"
+        endif
+    else
+        cJson := "[{"
+        cJson := " 'CMSG': 'Produto não encontrado'" 
+        cJson := "}]"
+    EndIf
+    
+    retJson := oJson:FromJson(cJson)
+    varInfo("getProdJson", retJson)
+
+    ::SetResponse(retJson)
+
+    ConOut("Fim ws_gts_fluig getProduto")
+    RESET Environment
+RETURN
+
+
