@@ -18,6 +18,7 @@ END WSRESTFUL
 //Adiciona os parametros
 WSMETHOD GET getProduto WSRECEIVE CPROD WSSERVICE ws_gts_fluig
     Local cProd := Self:CPROD
+    Local oJson := JsonObject():New()
 
     //logando na empresa
     PREPARE Environment EMPRESA "01" FILIAL "010001"
@@ -32,24 +33,28 @@ WSMETHOD GET getProduto WSRECEIVE CPROD WSSERVICE ws_gts_fluig
     cChave := xFilial('SB1')+Padr(cProd,TamSx3("B1_COD")[1])
     If SB1->(Dbseek(cChave))
         If SB1->B1_LOCPAD == '02'
-            cJson := "[{"
-            cJson := " 'CDESC': " + SB1->B1_DESC
-            cJson := "}]"
+            cJson := '{'
+            cJson += '"CDESC": "'+alltrim(SB1->B1_DESC)+'",'
+            cJson += '"CODRET": 1'
+            cJson += '}'
         else
-            cJson := "[{"
-            cJson := " 'CMSG': 'Produto não faz parte do armazem 02'" 
-            cJson := "}]"
+            cJson := '{'
+            cJson += '"CODRET": 2,'
+            cJson += '"CMSG": Produto não faz parte do armazem 02"'
+            cJson += '}'
         endif
     else
-        cJson := "[{"
-        cJson := " 'CMSG': 'Produto não encontrado'" 
-        cJson := "}]"
+        cJson := '{'
+		cJson += '"CODRET": 2,'
+		cJson += '"CMSG": Produto não encontrado."'
+		cJson += '}'
     EndIf
     
+    ConOut(cJson)
     retJson := oJson:FromJson(cJson)
     varInfo("getProdJson", retJson)
 
-    ::SetResponse(retJson)
+    ::SetResponse(oJson)
 
     ConOut("Fim ws_gts_fluig getProduto")
     RESET Environment
